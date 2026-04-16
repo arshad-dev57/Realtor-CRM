@@ -86,18 +86,17 @@ export default function UsersPage() {
       setError(err.message || 'Network error');
     }
   };
-
-  const deleteSelected = async () => {
-    if (selected.size === 0) return;
-    if (!confirm(`Delete ${selected.size} selected user(s)?`)) return;
-    
-    for (const userId of selected) {
-      await api.deleteUser(userId);
-    }
-    fetchUsers();
-    setSelected(new Set());
-  };
-
+const deleteSelected = async () => {
+  if (selected.size === 0) return;
+  if (!confirm(`Delete ${selected.size} selected user(s)?`)) return;
+  
+  // ✅ Fix: Convert Set to Array
+  for (const userId of Array.from(selected)) {
+    await api.deleteUser(userId);
+  }
+  fetchUsers();
+  setSelected(new Set());
+};
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };

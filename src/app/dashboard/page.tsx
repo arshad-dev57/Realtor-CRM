@@ -27,7 +27,6 @@ function StatCard({ label, value, change, changeType, icon, accent }: {
       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = accent + '44'; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = 'var(--border)'; }}
     >
-      {/* Background glow */}
       <div style={{
         position: 'absolute', top: '-30px', right: '-30px',
         width: '100px', height: '100px', borderRadius: '50%',
@@ -160,7 +159,8 @@ export default function DashboardPage() {
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Revenue</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <div style={{ width: '10px', height: '3px', background: '#00d4aa', borderRadius: '2px', borderTop: '2px dashed #00d4aa', height: '0' }} />
+                  {/* ✅ FIXED: Removed duplicate height property */}
+                  <div style={{ width: '10px', height: '3px', background: '#00d4aa', borderRadius: '2px', opacity: 0.6 }} />
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target</span>
                 </div>
               </div>

@@ -127,13 +127,6 @@ async updateUserStatus(userId: string, isActive: boolean) {
   return this.request(`/users/${userId}/status`, 'PUT', { isActive });
 }
 // Add to your Api class in api.ts
-
-// Get all realtors
-async getAllRealtors() {
-  return this.request('/users/realtors', 'GET');
-}
-
-// Get realtor by ID
 async getRealtorById(id: string) {
   return this.request(`/users/realtors/${id}`, 'GET');
 }
