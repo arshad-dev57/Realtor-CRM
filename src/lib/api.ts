@@ -174,9 +174,9 @@ async getAllLeads(params?: any) {
 }
 
 // Create new lead
-async createLead(leadData: any) {
-  return this.request('/leads', 'POST', leadData);
-}
+// async createLead(leadData: any) {
+//   return this.request('/leads', 'POST', leadData);
+// }
 
 // Update lead
 async updateLead(id: string, leadData: any) {
@@ -189,9 +189,9 @@ async deleteLead(id: string) {
 }
 
 // Assign lead to realtor
-async assignLead(id: string, realtorId: string) {
-  return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
-}
+// async assignLead(id: string, realtorId: string) {
+//   return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
+// }
 
 // Update lead stage
 async updateLeadStage(id: string, stage: string) {
@@ -241,9 +241,7 @@ async assignLead(id: string, realtorId: string) {
 }
 
 // Get all realtors (for dropdown)
-async getAllRealtors() {
-  return this.request('/users/realtors', 'GET');
-}
+
 // Get pending requests count
 async getPendingRequestsCount() {
   return this.request('/lead-requests/pending/count', 'GET');
