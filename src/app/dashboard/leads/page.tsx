@@ -202,23 +202,30 @@ export default function LeadsPage() {
       console.error('Error fetching realtors:', err);
     }
   };
-
-  const fetchUniqueLocations = async () => {
-    try {
-      const response = await api.getAllLeads({ limit: 1000 });
-      if (response.success) {
-        const allLeads = response.data.leads || [];
-        const uniqueCountries = [...new Set(allLeads.map((l: Lead) => l.country).filter(Boolean))];
-        const uniqueCities = [...new Set(allLeads.map((l: Lead) => l.city).filter(Boolean))];
-        setCountries(uniqueCountries as string[]);
-        setCities(uniqueCities as string[]);
-      }
-    } catch (err) {
-      console.error('Error fetching locations:', err);
+const fetchUniqueLocations = async () => {
+  try {
+    const response = await api.getAllLeads({ limit: 1000 });
+    if (response.success) {
+      const allLeads = response.data.leads || [];
+      
+      // Get unique countries
+      const countrySet = new Set<string>();
+      allLeads.forEach((lead: Lead) => {
+        if (lead.country) countrySet.add(lead.country);
+      });
+      setCountries(Array.from(countrySet));
+      
+      // Get unique cities
+      const citySet = new Set<string>();
+      allLeads.forEach((lead: Lead) => {
+        if (lead.city) citySet.add(lead.city);
+      });
+      setCities(Array.from(citySet));
     }
-  };
-
-  const handleAssignLead = async () => {
+  } catch (err) {
+    console.error('Error fetching locations:', err);
+  }
+};  const handleAssignLead = async () => {
     if (!selectedLead || !selectedRealtorId) return;
     
     setAssigning(true);
