@@ -93,6 +93,7 @@ function LogoutIcon() {
 }
 
 // ==================== NAVIGATION ITEMS ====================
+// ✅ ANALYTICS REMOVED - No more 404 error!
 
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard', icon: <HomeIcon /> },
@@ -101,7 +102,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/leads', label: 'Leads', icon: <LeadsIcon />, badge: 12 },
   { href: '/dashboard/lead-request', label: 'Lead Requests', icon: <BellIcon /> },
   { href: '/dashboard/properties', label: 'Properties', icon: <BuildingIcon /> },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: <ChartIcon /> },
+  // { href: '/dashboard/analytics', label: 'Analytics', icon: <ChartIcon /> }, // ❌ REMOVED
 ];
 
 // ==================== SIDEBAR COMPONENT ====================
