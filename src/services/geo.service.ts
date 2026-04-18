@@ -1,4 +1,3 @@
-// src/services/geo.service.ts
 import axios from 'axios';
 
 export interface Country {
@@ -20,21 +19,23 @@ class GeoService {
 
   // Fetch all countries from REST Countries API
   async getAllCountries(): Promise<Country[]> {
-    if (this.countriesCache) {
+    // ✅ Fix: Check if cache exists and return it
+    if (this.countriesCache !== null) {
       return this.countriesCache;
     }
 
     try {
       const response = await axios.get('https://restcountries.com/v3.1/all?fields=name,cca2,flags,idd');
       
-      this.countriesCache = response.data.map((country: any) => ({
+      const countries: Country[] = response.data.map((country: any) => ({
         code: country.cca2,
         name: country.name.common,
         flag: country.flags?.svg || country.flags?.png || '',
         phoneCode: `${country.idd?.root || ''}${country.idd?.suffixes?.[0] || ''}`
       })).sort((a: Country, b: Country) => a.name.localeCompare(b.name));
       
-      return this.countriesCache;
+      this.countriesCache = countries;
+      return countries;
     } catch (error) {
       console.error('Error fetching countries:', error);
       return [];
@@ -46,15 +47,10 @@ class GeoService {
     const cacheKey = `${countryCode}_${namePrefix}`;
     
     if (this.citiesCache.has(cacheKey)) {
-      return this.citiesCache.get(cacheKey)!;
+      return this.citiesCache.get(cacheKey) || [];
     }
 
     try {
-      // Using GeoDB Cities API (free, no API key required for basic usage)
-      // Note: For production, you may want to use a free API key for higher limits
-      const url = `https://wft-geo-db.p.rapidapi.com/v1/geo/cities`;
-      
-      // For demo, using a public endpoint. In production, you'd need RapidAPI key
       // Alternative free API:
       const fallbackUrl = `https://api.teleport.org/api/countries/iso_alpha2:${countryCode}/admin_divisions/`;
       
@@ -83,7 +79,6 @@ class GeoService {
       return cities;
     } catch (error) {
       console.error('Error fetching cities:', error);
-      // Return empty array if API fails
       return [];
     }
   }
