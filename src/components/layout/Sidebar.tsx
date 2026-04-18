@@ -101,7 +101,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard/leads', label: 'Leads', icon: <LeadsIcon />, badge: 12 },
   { href: '/dashboard/lead-request', label: 'Lead Requests', icon: <BellIcon /> },
   { href: '/dashboard/properties', label: 'Properties', icon: <BuildingIcon /> },
-  // { href: '/dashboard/analytics', label: 'Analytics', icon: <ChartIcon /> },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: <ChartIcon /> },
 ];
 
 // ==================== SIDEBAR COMPONENT ====================
