@@ -166,6 +166,88 @@ async addPropertyWithImages(formData: FormData) {
   
   return response.json();
 }
+// Get all leads with pagination and filters
+async getAllLeads(params?: any) {
+  const queryString = params ? new URLSearchParams(params).toString() : '';
+  const url = queryString ? `/leads?${queryString}` : '/leads';
+  return this.request(url, 'GET');
+}
+
+// Create new lead
+async createLead(leadData: any) {
+  return this.request('/leads', 'POST', leadData);
+}
+
+// Update lead
+async updateLead(id: string, leadData: any) {
+  return this.request(`/leads/${id}`, 'PUT', leadData);
+}
+
+// Delete lead
+async deleteLead(id: string) {
+  return this.request(`/leads/${id}`, 'DELETE');
+}
+
+// Assign lead to realtor
+async assignLead(id: string, realtorId: string) {
+  return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
+}
+
+// Update lead stage
+async updateLeadStage(id: string, stage: string) {
+  return this.request(`/leads/${id}/stage`, 'PUT', { stage });
+}
+async createLead(leadData: any) {
+  return this.request('/leads', 'POST', leadData);
+}
+
+// ==================== LEAD REQUESTS API ====================
+
+// Get all lead requests (admin)
+async getAllLeadRequests(status?: string, page: number = 1, limit: number = 20) {
+  let url = `/lead-requests?page=${page}&limit=${limit}`;
+  if (status && status !== 'all') {
+    url += `&status=${status}`;
+  }
+  return this.request(url, 'GET');
+}
+
+// Get single lead request
+async getLeadRequestById(requestId: string) {
+  return this.request(`/lead-requests/${requestId}`, 'GET');
+}
+
+// Approve lead request
+async approveLeadRequest(requestId: string, leadIds?: string[]) {
+  const body: any = {};
+  if (leadIds && leadIds.length > 0) {
+    body.leadIds = leadIds;
+  }
+  return this.request(`/lead-requests/${requestId}/approve`, 'PUT', body);
+}
+
+// Reject lead request
+async rejectLeadRequest(requestId: string, rejectionReason: string) {
+  return this.request(`/lead-requests/${requestId}/reject`, 'PUT', { rejectionReason });
+}
+
+// Delete lead request
+async deleteLeadRequest(requestId: string) {
+  return this.request(`/lead-requests/${requestId}`, 'DELETE');
+}
+// Assign lead to realtor
+async assignLead(id: string, realtorId: string) {
+  return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
+}
+
+// Get all realtors (for dropdown)
+async getAllRealtors() {
+  return this.request('/users/realtors', 'GET');
+}
+// Get pending requests count
+async getPendingRequestsCount() {
+  return this.request('/lead-requests/pending/count', 'GET');
+}
   logout() {
     this.clearToken();
   }

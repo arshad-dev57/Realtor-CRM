@@ -736,11 +736,11 @@ export default function LoginPage() {
                   <div className="btn-text">
                     <div className="spinner" />
                     <span>Signing in</span>
-                    <div className="loading-dots">
+                    {/* <div className="loading-dots">
                       <span>.</span>
                       <span>.</span>
                       <span>.</span>
-                    </div>
+                    </div> */}
                   </div>
                 ) : (
                   <>
