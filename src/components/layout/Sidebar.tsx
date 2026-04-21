@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { authController } from '@/controllers/auth.controller';
+import { api } from '@/lib/api';
 
 interface NavItem {
   href: string;
@@ -92,19 +93,6 @@ function LogoutIcon() {
   );
 }
 
-// ==================== NAVIGATION ITEMS ====================
-// ✅ ANALYTICS REMOVED - No more 404 error!
-
-const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Dashboard', icon: <HomeIcon /> },
-  { href: '/dashboard/users', label: 'Users', icon: <UsersIcon /> },
-  { href: '/dashboard/realtors', label: 'Realtors', icon: <BuildingIcon /> },
-  { href: '/dashboard/leads', label: 'Leads', icon: <LeadsIcon />, badge: 12 },
-  { href: '/dashboard/lead-request', label: 'Lead Requests', icon: <BellIcon /> },
-  { href: '/dashboard/properties', label: 'Properties', icon: <BuildingIcon /> },
-  // { href: '/dashboard/analytics', label: 'Analytics', icon: <ChartIcon /> }, // ❌ REMOVED
-];
-
 // ==================== SIDEBAR COMPONENT ====================
 
 export default function Sidebar() {
@@ -115,6 +103,14 @@ export default function Sidebar() {
   const [userName, setUserName] = useState('Admin User');
   const [userRole, setUserRole] = useState('Administrator');
   const [userInitials, setUserInitials] = useState('AU');
+  
+  // Badge counts
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalRealtors, setTotalRealtors] = useState(0);
+  const [totalLeads, setTotalLeads] = useState(0);
+  const [pendingRequests, setPendingRequests] = useState(0);
+  const [totalProperties, setTotalProperties] = useState(0);
+  const [totalRevenue, setTotalRevenue] = useState(0);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -137,8 +133,29 @@ export default function Sidebar() {
       setUserInitials(initials.toUpperCase());
     }
     
+    // Fetch badge counts
+    fetchBadgeCounts();
+    
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const fetchBadgeCounts = async () => {
+    try {
+      // Fetch dashboard stats for counts
+      const response = await api.getDashboardStats();
+      if (response.success) {
+        const data = response.data;
+        setTotalUsers(data.stats.users.total || 0);
+        setTotalRealtors(data.stats.users.realtors || 0);
+        setTotalLeads(data.stats.leads.total || 0);
+        setPendingRequests(data.stats.requests.pending || 0);
+        setTotalProperties(data.stats.properties.total || 0);
+        setTotalRevenue(data.stats.revenue.total || 0);
+      }
+    } catch (error) {
+      console.error('Error fetching badge counts:', error);
+    }
+  };
 
   const handleLogout = () => {
     authController.logout();
@@ -146,6 +163,17 @@ export default function Sidebar() {
   };
 
   const sidebarWidth = isMobile && !isOpen ? 0 : 240;
+
+  // Navigation items with dynamic badges
+  const navItems: NavItem[] = [
+    { href: '/dashboard', label: 'Dashboard', icon: <HomeIcon /> },
+    { href: '/dashboard/users', label: 'Users', icon: <UsersIcon />, badge: totalUsers },
+    { href: '/dashboard/realtors', label: 'Realtors', icon: <BuildingIcon />, badge: totalRealtors },
+    { href: '/dashboard/leads', label: 'Leads', icon: <LeadsIcon />, badge: totalLeads },
+    { href: '/dashboard/lead-request', label: 'Lead Requests', icon: <BellIcon />, badge: pendingRequests },
+    { href: '/dashboard/properties', label: 'Properties', icon: <BuildingIcon />, badge: totalProperties },
+    { href: '/dashboard/sales', label: 'Revenue', icon: <ChartIcon /> },
+  ];
 
   return (
     <>
@@ -315,7 +343,7 @@ export default function Sidebar() {
                         }}>
                           {item.label}
                         </span>
-                        {item.badge && (
+                        {item.badge !== undefined && item.badge > 0 && (
                           <span style={{
                             background: 'white',
                             color: '#537D96',
@@ -326,7 +354,7 @@ export default function Sidebar() {
                             minWidth: '22px',
                             textAlign: 'center',
                           }}>
-                            {item.badge}
+                            {item.badge > 99 ? '99+' : item.badge}
                           </span>
                         )}
                       </div>

@@ -1,5 +1,7 @@
 'use client';
 
+import NotificationBell from '@/components/NotificationBell';
+
 interface HeaderProps {
   title: string;
   subtitle?: string;
@@ -60,24 +62,8 @@ export default function Header({ title, subtitle }: HeaderProps) {
           <span style={{ fontSize: '11px', color: 'var(--text-muted)', padding: '1px 5px', background: 'var(--bg-card)', borderRadius: '4px', border: '1px solid var(--border)' }}>⌘K</span>
         </div>
 
-        {/* Notifications */}
-        <button style={{
-          width: '36px', height: '36px', borderRadius: '8px',
-          background: 'var(--bg-elevated)', border: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer', position: 'relative',
-          color: 'var(--text-secondary)',
-        }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-          </svg>
-          <span style={{
-            position: 'absolute', top: '4px', right: '4px',
-            width: '8px', height: '8px', background: 'var(--danger)',
-            borderRadius: '50%', border: '2px solid var(--bg-surface)',
-          }} />
-        </button>
+        {/* ✅ Notification Bell Component - Replace the old notification button */}
+        <NotificationBell />
 
         {/* Live indicator */}
         <div style={{

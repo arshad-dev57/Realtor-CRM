@@ -101,7 +101,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, editPrope
   // Handle edit mode
   useEffect(() => {
     if (editProperty && isOpen) {
-      // Load edit data here
       setTitle(editProperty.title || '');
       setPropertyType(editProperty.propertyType || 'House');
       setListingType(editProperty.type || 'For Sale');
@@ -112,7 +111,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, editPrope
       setBathrooms(editProperty.bathrooms?.toString() || '2');
       setSquareFeet(editProperty.squareFeet?.toString() || '');
       setDescription(editProperty.description || '');
-      // ... load other fields
     }
   }, [editProperty, isOpen]);
 
@@ -336,7 +334,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, editPrope
         commercialFeatures: selectedCommercialFeatures
       };
 
-      // Create FormData for images
       const formData = new FormData();
       formData.append('propertyData', JSON.stringify(propertyData));
       
@@ -366,8 +363,31 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, editPrope
   if (!isOpen) return null;
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, overflow: 'auto' }} onClick={onClose}>
-      <div style={{ background: 'white', borderRadius: '16px', maxWidth: '800px', width: '90%', maxHeight: '90vh', overflow: 'auto', margin: '20px' }} onClick={(e) => e.stopPropagation()}>
+    // ✅ FIXED: Modal opens at top (not center)
+    <div style={{ 
+      position: 'fixed', 
+      top: 0, 
+      left: 0, 
+      right: 0, 
+      bottom: 0, 
+      background: 'rgba(0,0,0,0.7)', 
+      display: 'flex', 
+      alignItems: 'flex-start',  // ✅ Changed from 'center' to 'flex-start'
+      justifyContent: 'center', 
+      zIndex: 1000, 
+      overflow: 'auto' 
+    }} onClick={onClose}>
+      <div style={{ 
+        background: 'white', 
+        borderRadius: '16px', 
+        maxWidth: '800px', 
+        width: '90%', 
+        maxHeight: '90vh', 
+        overflow: 'auto', 
+        margin: '20px auto'  // ✅ Added margin top
+      }} onClick={(e) => e.stopPropagation()}>
+        {/* Rest of the content remains same */}
+        
         {/* Header */}
         <div style={{ padding: '20px 24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, background: 'white', zIndex: 10 }}>
           <div>
@@ -424,6 +444,9 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess, editPrope
             </div>
           )}
 
+          {/* Step 2-5 remain same... */}
+          {/* ... (rest of the steps remain unchanged) ... */}
+          
           {/* Step 2: Property Details */}
           {currentStep === 1 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

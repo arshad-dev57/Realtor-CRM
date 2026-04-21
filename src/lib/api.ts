@@ -7,7 +7,6 @@ class Api {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      // Try to get token from cookie first
       const cookieToken = this.getCookie('token');
       if (cookieToken) {
         this.token = cookieToken;
@@ -29,7 +28,6 @@ class Api {
     this.token = token;
     if (typeof window !== 'undefined') {
       localStorage.setItem('token', token);
-      // Also set cookie
       document.cookie = `token=${token}; path=/; max-age=604800; SameSite=Lax`;
     }
   }
@@ -68,6 +66,8 @@ class Api {
     return data;
   }
 
+  // ==================== AUTH APIs ====================
+  
   async adminLogin(email: string, password: string) {
     const response = await this.request('/auth/admin/login', 'POST', { email, password });
     if (response.token) {
@@ -98,154 +98,196 @@ class Api {
     return this.request('/auth/profile', 'GET');
   }
 
+  // ==================== USER APIs ====================
+  
   async getAllUsers() {
-  return this.request('/users/all', 'GET');
-}
-
-// Get all buyers
-async getAllBuyers() {
-  return this.request('/users/buyers', 'GET');
-}
-
-// Get all realtors
-async getAllRealtors() {
-  return this.request('/users/realtors', 'GET');
-}
-
-// Get user by ID
-async getUserById(userId: string) {
-  return this.request(`/users/${userId}`, 'GET');
-}
-
-// Delete user
-async deleteUser(userId: string) {
-  return this.request(`/users/${userId}`, 'DELETE');
-}
-
-// Update user status
-async updateUserStatus(userId: string, isActive: boolean) {
-  return this.request(`/users/${userId}/status`, 'PUT', { isActive });
-}
-// Add to your Api class in api.ts
-async getRealtorById(id: string) {
-  return this.request(`/users/realtors/${id}`, 'GET');
-}
-
-// Update realtor
-async updateRealtor(id: string, data: any) {
-  return this.request(`/users/realtors/${id}`, 'PUT', data);
-}
-
-// Add to Api class in api.ts
-
-// Get all properties with pagination and filters
-async getAllProperties(queryParams?: string) {
-  const url = queryParams ? `/property/all?${queryParams}` : '/property/all';
-  return this.request(url, 'GET');
-}
-
-// Get property by ID
-async getPropertyById(propertyId: string) {
-  return this.request(`/property/public/${propertyId}`, 'GET');
-}
-
-// Add Property
-async addProperty(propertyData: any) {
-  return this.request('/property/add', 'POST', propertyData);
-}
-async addPropertyWithImages(formData: FormData) {
-  const token = localStorage.getItem('token');
-  
-  const response = await fetch(`${API_BASE_URL}/property/add`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-    },
-    body: formData,
-  });
-  
-  return response.json();
-}
-// Get all leads with pagination and filters
-async getAllLeads(params?: any) {
-  const queryString = params ? new URLSearchParams(params).toString() : '';
-  const url = queryString ? `/leads?${queryString}` : '/leads';
-  return this.request(url, 'GET');
-}
-
-// Create new lead
-// async createLead(leadData: any) {
-//   return this.request('/leads', 'POST', leadData);
-// }
-
-// Update lead
-async updateLead(id: string, leadData: any) {
-  return this.request(`/leads/${id}`, 'PUT', leadData);
-}
-
-// Delete lead
-async deleteLead(id: string) {
-  return this.request(`/leads/${id}`, 'DELETE');
-}
-
-// Assign lead to realtor
-// async assignLead(id: string, realtorId: string) {
-//   return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
-// }
-
-// Update lead stage
-async updateLeadStage(id: string, stage: string) {
-  return this.request(`/leads/${id}/stage`, 'PUT', { stage });
-}
-async createLead(leadData: any) {
-  return this.request('/leads', 'POST', leadData);
-}
-
-// ==================== LEAD REQUESTS API ====================
-
-// Get all lead requests (admin)
-async getAllLeadRequests(status?: string, page: number = 1, limit: number = 20) {
-  let url = `/lead-requests?page=${page}&limit=${limit}`;
-  if (status && status !== 'all') {
-    url += `&status=${status}`;
+    return this.request('/users/all', 'GET');
   }
+
+  async getAllBuyers() {
+    return this.request('/users/buyers', 'GET');
+  }
+
+  async getAllRealtors() {
+    return this.request('/users/realtors', 'GET');
+  }
+
+  async getUserById(userId: string) {
+    return this.request(`/users/${userId}`, 'GET');
+  }
+
+  async deleteUser(userId: string) {
+    return this.request(`/users/${userId}`, 'DELETE');
+  }
+
+  async updateUserStatus(userId: string, isActive: boolean) {
+    return this.request(`/users/${userId}/status`, 'PUT', { isActive });
+  }
+
+  async getRealtorById(id: string) {
+    return this.request(`/users/realtors/${id}`, 'GET');
+  }
+
+  async updateRealtor(id: string, data: any) {
+    return this.request(`/users/realtors/${id}`, 'PUT', data);
+  }
+
+  // ==================== PROPERTY APIs ====================
+  
+  async getAllProperties(queryParams?: string) {
+    const url = queryParams ? `/property/all?${queryParams}` : '/property/all';
+    return this.request(url, 'GET');
+  }
+
+  async getPropertyById(propertyId: string) {
+    return this.request(`/property/public/${propertyId}`, 'GET');
+  }
+
+  async addProperty(propertyData: any) {
+    return this.request('/property/add', 'POST', propertyData);
+  }
+
+  async addPropertyWithImages(formData: FormData) {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`${API_BASE_URL}/property/add`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+      body: formData,
+    });
+    return response.json();
+  }
+
+  // ==================== LEAD APIs ====================
+  
+  async getAllLeads(params?: any) {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    const url = queryString ? `/leads?${queryString}` : '/leads';
+    return this.request(url, 'GET');
+  }
+
+  async createLead(leadData: any) {
+    return this.request('/leads', 'POST', leadData);
+  }
+
+  async updateLead(id: string, leadData: any) {
+    return this.request(`/leads/${id}`, 'PUT', leadData);
+  }
+
+  async deleteLead(id: string) {
+    return this.request(`/leads/${id}`, 'DELETE');
+  }
+
+  async assignLead(id: string, realtorId: string) {
+    return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
+  }
+
+  async updateLeadStage(id: string, stage: string) {
+    return this.request(`/leads/${id}/stage`, 'PUT', { stage });
+  }
+
+  // ==================== LEAD REQUESTS APIs ====================
+  
+  async getAllLeadRequests(status?: string, page: number = 1, limit: number = 20) {
+    let url = `/lead-requests?page=${page}&limit=${limit}`;
+    if (status && status !== 'all') {
+      url += `&status=${status}`;
+    }
+    return this.request(url, 'GET');
+  }
+
+  async getLeadRequestById(requestId: string) {
+    return this.request(`/lead-requests/${requestId}`, 'GET');
+  }
+
+  async approveLeadRequest(requestId: string, leadIds?: string[]) {
+    const body: any = {};
+    if (leadIds && leadIds.length > 0) {
+      body.leadIds = leadIds;
+    }
+    return this.request(`/lead-requests/${requestId}/approve`, 'PUT', body);
+  }
+
+  async rejectLeadRequest(requestId: string, rejectionReason: string) {
+    return this.request(`/lead-requests/${requestId}/reject`, 'PUT', { rejectionReason });
+  }
+
+  async deleteLeadRequest(requestId: string) {
+    return this.request(`/lead-requests/${requestId}`, 'DELETE');
+  }
+
+  async getPendingRequestsCount() {
+    return this.request('/lead-requests/pending/count', 'GET');
+  }
+
+  // ==================== PAYMENT APIs ====================
+  
+  // Get all payments (admin)
+  async getPayments(params?: any) {
+    const queryString = params ? new URLSearchParams(params).toString() : '';
+    const url = queryString ? `/payments?${queryString}` : '/payments';
+    return this.request(url, 'GET');
+  }
+
+  // Get sales stats (admin)
+  async getSalesStats() {
+    return this.request('/payments/stats', 'GET');
+  }
+
+  // Create payment (after in-app purchase)
+  async createPayment(paymentData: any) {
+    return this.request('/payments', 'POST', paymentData);
+  }
+  async getMyPayments() {
+    return this.request('/payments/my-payments', 'GET');
+  }
+  async checkSubscriptionStatus() {
+    return this.request('/payments/subscription/status', 'GET');
+  }
+  async getPaymentById(paymentId: string) {
+    return this.request(`/payments/${paymentId}`, 'GET');
+  }
+  async updatePaymentStatus(paymentId: string, status: string) {
+    return this.request(`/payments/${paymentId}/status`, 'PUT', { status });
+  }
+
+// ==================== NOTIFICATION APIs ====================
+
+// Get all notifications
+async getNotifications(page: number = 1, limit: number = 20, unreadOnly: boolean = false) {
+  const url = `/notifications?page=${page}&limit=${limit}&unreadOnly=${unreadOnly}`;
   return this.request(url, 'GET');
 }
 
-// Get single lead request
-async getLeadRequestById(requestId: string) {
-  return this.request(`/lead-requests/${requestId}`, 'GET');
+// Get unread count only
+async getUnreadNotificationCount() {
+  return this.request('/notifications/unread/count', 'GET');
 }
 
-// Approve lead request
-async approveLeadRequest(requestId: string, leadIds?: string[]) {
-  const body: any = {};
-  if (leadIds && leadIds.length > 0) {
-    body.leadIds = leadIds;
-  }
-  return this.request(`/lead-requests/${requestId}/approve`, 'PUT', body);
+// Mark notification as read
+async markNotificationAsRead(notificationId: string) {
+  return this.request(`/notifications/${notificationId}/read`, 'PUT');
 }
 
-// Reject lead request
-async rejectLeadRequest(requestId: string, rejectionReason: string) {
-  return this.request(`/lead-requests/${requestId}/reject`, 'PUT', { rejectionReason });
+// Mark all notifications as read
+async markAllNotificationsAsRead() {
+  return this.request('/notifications/read/all', 'PUT');
 }
 
-// Delete lead request
-async deleteLeadRequest(requestId: string) {
-  return this.request(`/lead-requests/${requestId}`, 'DELETE');
-}
-// Assign lead to realtor
-async assignLead(id: string, realtorId: string) {
-  return this.request(`/leads/${id}/assign`, 'PUT', { realtorId });
+// Delete notification
+async deleteNotification(notificationId: string) {
+  return this.request(`/notifications/${notificationId}`, 'DELETE');
 }
 
-// Get all realtors (for dropdown)
+  // Add this method to your Api class
 
-// Get pending requests count
-async getPendingRequestsCount() {
-  return this.request('/lead-requests/pending/count', 'GET');
+// Get admin dashboard stats
+async getDashboardStats() {
+  return this.request('/admindashboard/admin/stats', 'GET');
 }
+
+  
   logout() {
     this.clearToken();
   }

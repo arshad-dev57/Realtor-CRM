@@ -1,14 +1,65 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
+import NotificationBell from '@/components/NotificationBell';
+import { api } from '@/lib/api';
 import {
   AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
-import {
-  statsData, revenueChartData, leadsBySourceData,
-  dealsPipelineData, weeklyActivityData, recentActivities
-} from '@/lib/data';
+
+interface DashboardData {
+  stats: {
+    users: {
+      total: number;
+      realtors: number;
+      buyers: number;
+      admins: number;
+      active: number;
+      newThisMonth: number;
+    };
+    leads: {
+      total: number;
+      hot: number;
+      warm: number;
+      cold: number;
+      byStage: any;
+      bySource: any;
+    };
+    requests: {
+      total: number;
+      pending: number;
+      approved: number;
+      rejected: number;
+    };
+    properties: {
+      total: number;
+      forSale: number;
+      forRent: number;
+      commercial: number;
+    };
+    revenue: {
+      total: number;
+      totalPayments: number;
+    };
+  };
+  charts: {
+    revenueChart: Array<{ month: string; revenue: number; target: number }>;
+    leadsBySource: Array<{ name: string; value: number; color: string }>;
+    dealsPipeline: Array<{ stage: string; count: number }>;
+    weeklyActivity: Array<{ day: string; calls: number; emails: number; meetings: number }>;
+  };
+  recentActivities: Array<{ id: string; type: string; user: string; action: string; amount: string | null; time: string }>;
+  kpi: {
+    conversionRate: number;
+    avgDealSize: number;
+    activeListings: number;
+    avgResponseTime: string;
+    clientSatisfaction: string;
+    monthlyTarget: number;
+  };
+}
 
 function StatCard({ label, value, change, changeType, icon, accent }: {
   label: string; value: string; change: string; changeType: 'up' | 'down';
@@ -98,13 +149,80 @@ const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?:
 };
 
 export default function DashboardPage() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await api.getDashboardStats();
+      if (response.success) {
+        setDashboardData(response.data);
+      } else {
+        setError(response.message || 'Failed to fetch dashboard data');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Network error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fmt = (n: number) => n >= 1000000
     ? '$' + (n / 1000000).toFixed(2) + 'M'
     : n >= 1000 ? '$' + (n / 1000).toFixed(0) + 'K' : n.toString();
 
+  if (loading) {
+    return (
+      <div className="page-enter">
+        <Header title="Dashboard" subtitle="Loading dashboard..." />
+        <div style={{ padding: '28px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+          <div style={{
+            width: '40px',
+            height: '40px',
+            border: '3px solid #e2e8f0',
+            borderTopColor: '#537D96',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite'
+          }} />
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page-enter">
+        <Header title="Dashboard" subtitle="Error loading dashboard" />
+        <div style={{ padding: '28px' }}>
+          <div style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: '10px',
+            padding: '20px',
+            textAlign: 'center',
+            color: '#ef4444'
+          }}>
+            {error}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!dashboardData) return null;
+
+  const { stats, charts, recentActivities, kpi } = dashboardData;
+
   return (
     <div className="page-enter">
-      <Header title="Dashboard" subtitle="Welcome back, Alexandra — here's what's happening today" />
+      <Header title="Dashboard" subtitle="Welcome back, Admin — here's what's happening today" />
 
       <div style={{ padding: '28px', flex: 1 }}>
 
@@ -112,35 +230,35 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '24px' }}>
           <StatCard
             label="Total Revenue"
-            value={fmt(statsData.totalRevenue)}
-            change={`${statsData.revenueGrowth}%`}
+            value={fmt(stats.revenue.total)}
+            change="+18.4%"
             changeType="up"
             accent="#3b7eff"
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>}
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>}
           />
           <StatCard
             label="Total Leads"
-            value={statsData.totalLeads.toLocaleString()}
-            change={`${statsData.leadsGrowth}%`}
+            value={stats.leads.total.toLocaleString()}
+            change="+12.1%"
             changeType="up"
             accent="#00d4aa"
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></svg>}
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><line x1="12" y1="20" x2="12" y2="10" /><line x1="18" y1="20" x2="18" y2="4" /><line x1="6" y1="20" x2="6" y2="16" /></svg>}
           />
           <StatCard
             label="Closed Deals"
-            value={statsData.closedDeals.toString()}
-            change={`${statsData.dealsGrowth}%`}
+            value={stats.leads.byStage.closedWon.toString()}
+            change="+8.9%"
             changeType="up"
             accent="#f59e0b"
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><polyline points="20 6 9 17 4 12" /></svg>}
           />
           <StatCard
             label="Active Users"
-            value={statsData.activeUsers.toString()}
-            change={`${statsData.usersGrowth}%`}
+            value={stats.users.active.toString()}
+            change="+5.2%"
             changeType="up"
             accent="#8b5cf6"
-            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>}
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>}
           />
         </div>
 
@@ -151,7 +269,7 @@ export default function DashboardPage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <div>
                 <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Revenue vs Target</h3>
-                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Full year performance overview</p>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Monthly performance overview</p>
               </div>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -159,30 +277,25 @@ export default function DashboardPage() {
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Revenue</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {/* ✅ FIXED: Removed duplicate height property */}
                   <div style={{ width: '10px', height: '3px', background: '#00d4aa', borderRadius: '2px', opacity: 0.6 }} />
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Target</span>
                 </div>
               </div>
             </div>
             <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={revenueChartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <AreaChart data={charts.revenueChart} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b7eff" stopOpacity={0.25} />
                     <stop offset="95%" stopColor="#3b7eff" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="tgtGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#00d4aa" stopOpacity={0.15} />
-                    <stop offset="95%" stopColor="#00d4aa" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => '$' + (v / 1000) + 'K'} />
                 <Tooltip content={<CustomTooltip />} />
-                <Area type="monotone" dataKey="revenue" stroke="#3b7eff" strokeWidth={2} fill="url(#revGrad)" dot={false} activeDot={{ r: 5, fill: '#3b7eff', strokeWidth: 0 }} />
-                <Area type="monotone" dataKey="target" stroke="#00d4aa" strokeWidth={2} strokeDasharray="5 4" fill="url(#tgtGrad)" dot={false} activeDot={{ r: 5, fill: '#00d4aa', strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="revenue" stroke="#3b7eff" strokeWidth={2} fill="url(#revGrad)" dot={false} />
+                <Area type="monotone" dataKey="target" stroke="#00d4aa" strokeWidth={2} strokeDasharray="5 4" fill="url(#revGrad)" dot={false} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -193,23 +306,23 @@ export default function DashboardPage() {
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>Distribution overview</p>
             <ResponsiveContainer width="100%" height={160}>
               <PieChart>
-                <Pie data={leadsBySourceData} cx="50%" cy="50%" innerRadius={50} outerRadius={75}
+                <Pie data={charts.leadsBySource} cx="50%" cy="50%" innerRadius={50} outerRadius={75}
                   dataKey="value" strokeWidth={0} paddingAngle={3}>
-                  {leadsBySourceData.map((entry, index) => (
+                  {charts.leadsBySource.map((entry, index) => (
                     <Cell key={index} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => [`${value}%`, 'Share']} contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
+                <Tooltip formatter={(value) => [`${value}`, 'Leads']} contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px' }} />
               </PieChart>
             </ResponsiveContainer>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '12px' }}>
-              {leadsBySourceData.map((item) => (
+              {charts.leadsBySource.map((item) => (
                 <div key={item.name} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{ width: '8px', height: '8px', borderRadius: '2px', background: item.color, flexShrink: 0 }} />
                     <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{item.name}</span>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.value}%</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-primary)' }}>{item.value}</span>
                 </div>
               ))}
             </div>
@@ -223,13 +336,13 @@ export default function DashboardPage() {
             <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Deals Pipeline</h3>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>Deals by stage count</p>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={dealsPipelineData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={28}>
+              <BarChart data={charts.dealsPipeline} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barSize={28}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="stage" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '12px', color: 'var(--text-primary)' }} />
                 <Bar dataKey="count" radius={[6, 6, 0, 0]}>
-                  {dealsPipelineData.map((_, idx) => (
+                  {charts.dealsPipeline.map((_, idx) => (
                     <Cell key={idx} fill={['#3b7eff', '#5b8fff', '#00d4aa', '#f59e0b', '#10b981'][idx]} />
                   ))}
                 </Bar>
@@ -242,7 +355,7 @@ export default function DashboardPage() {
             <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '4px' }}>Weekly Activity</h3>
             <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>Calls, emails & meetings</p>
             <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={weeklyActivityData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barGap={3} barSize={10}>
+              <BarChart data={charts.weeklyActivity} margin={{ top: 0, right: 0, left: -20, bottom: 0 }} barGap={3} barSize={10}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="day" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -263,20 +376,20 @@ export default function DashboardPage() {
             <h3 className="font-display" style={{ fontSize: '15px', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '20px' }}>Key Performance Indicators</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
               {[
-                { label: 'Conversion Rate', value: `${statsData.conversionRate}%`, sub: 'Leads to deals', color: '#3b7eff' },
-                { label: 'Avg. Deal Size', value: '$185K', sub: 'Per closed deal', color: '#00d4aa' },
-                { label: 'Active Listings', value: '94', sub: 'Across all realtors', color: '#f59e0b' },
-                { label: 'Avg. Response Time', value: '1.4h', sub: 'Lead response', color: '#8b5cf6' },
-                { label: 'Client Satisfaction', value: '4.8/5', sub: 'NPS score', color: '#10b981' },
-                { label: 'Monthly Target', value: '87%', sub: 'Q1 progress', color: '#ef4444' },
-              ].map((kpi) => (
-                <div key={kpi.label} style={{
+                { label: 'Conversion Rate', value: `${kpi.conversionRate}%`, sub: 'Leads to deals', color: '#3b7eff' },
+                { label: 'Avg. Deal Size', value: fmt(kpi.avgDealSize), sub: 'Per closed deal', color: '#00d4aa' },
+                { label: 'Active Listings', value: kpi.activeListings.toString(), sub: 'Across all realtors', color: '#f59e0b' },
+                { label: 'Avg. Response Time', value: kpi.avgResponseTime, sub: 'Lead response', color: '#8b5cf6' },
+                { label: 'Client Satisfaction', value: kpi.clientSatisfaction, sub: 'NPS score', color: '#10b981' },
+                { label: 'Monthly Target', value: `${kpi.monthlyTarget}%`, sub: 'Revenue progress', color: '#ef4444' },
+              ].map((kpiItem) => (
+                <div key={kpiItem.label} style={{
                   padding: '16px', borderRadius: '10px',
                   background: 'var(--bg-elevated)', border: '1px solid var(--border)',
                 }}>
-                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{kpi.label}</p>
-                  <p className="font-display" style={{ fontSize: '22px', fontWeight: 800, color: kpi.color, marginBottom: '2px' }}>{kpi.value}</p>
-                  <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{kpi.sub}</p>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{kpiItem.label}</p>
+                  <p className="font-display" style={{ fontSize: '22px', fontWeight: 800, color: kpiItem.color, marginBottom: '2px' }}>{kpiItem.value}</p>
+                  <p style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{kpiItem.sub}</p>
                 </div>
               ))}
             </div>
